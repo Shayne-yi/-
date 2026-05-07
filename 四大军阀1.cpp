@@ -235,6 +235,57 @@ void ShowAllSpots(SpotLinkList *L) {
     }
     printf("================================\n\n");
 }
+
+// 撤销上一步增删改操作
+void UndoOperate(SpotLinkList *L) {
+    if (IsOpStackEmpty(&g_opStack)) {
+        printf("暂无可撤销操作！\n");
+        return;
+    }
+    OpStackElem e;
+    PopOpStack(&g_opStack, &e);
+
+    Node *p;
+    if (e.opType == 1) {
+        // 撤销新增
+        DeleteSpot(L, e.oldSite.id);
+        printf("撤销新增成功！\n");
+    } else if (e.opType == 2) {
+        // 撤销删除
+        AddSpot(L, e.oldSite);
+        printf("撤销删除成功！\n");
+    } else if (e.opType == 3) {
+        // 撤销修改
+        p = L->head;
+        while (p && p->data.id != e.oldSite.id)
+            p = p->next;
+        if (p) {
+            p->data = e.oldSite;
+            printf("撤销修改成功！\n");
+        }
+    }
+}
+
+// 查看地点浏览历史
+void ShowViewHistory() {
+    if (g_viewStack.top == -1) {
+        printf("暂无浏览历史！\n");
+        return;
+    }
+    printf("===== 浏览历史记录 =====\n");
+    for (int i = 0; i <= g_viewStack.top; i++) {
+        ViewStackElem e = g_viewStack.data[i];
+        printf("编号：%d  名称：%s\n", e.site.id, e.site.name);
+    }
+}
+
+// 清空所有操作+浏览历史
+void ClearAllHistory() {
+    ClearOpStack(&g_opStack);
+    ClearViewStack(&g_viewStack);
+    printf("所有历史记录已清空！\n");
+}
+
 int main() {
     SpotLinkList spotList;
     InitList(&spotList);
