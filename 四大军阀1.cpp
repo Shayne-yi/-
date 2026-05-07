@@ -3,31 +3,58 @@
 #include <string.h>
 #include <stdbool.h>
 
-//µØµãĞÅÏ¢½á¹¹Ìå
+//åœ°ç‚¹ä¿¡æ¯ç»“æ„ä½“
 typedef struct {
-    int id;             // µØµã±àºÅ
-    char name[50];      // µØµãÃû³Æ
-    char desc[100];     // µØµãÃèÊö
-    float x, y;         // µØµã×ø±ê
+    int id;             // åœ°ç‚¹ç¼–å·
+    char name[50];      // åœ°ç‚¹åç§°
+    char desc[100];     // åœ°ç‚¹æè¿°
+    float x, y;         // åœ°ç‚¹åæ ‡
 } CampusSpot;
 
-//Á´±í½Úµã½á¹¹Ìå
+//é“¾è¡¨èŠ‚ç‚¹ç»“æ„ä½“
 typedef struct Node {
-    CampusSpot data;    // ½Úµã´æ´¢µÄµØµãÊı¾İ
-    struct Node *next;  // Ö¸ÏòÏÂÒ»¸ö½ÚµãµÄÖ¸Õë
+    CampusSpot data;    // èŠ‚ç‚¹å­˜å‚¨çš„åœ°ç‚¹æ•°æ®
+    struct Node *next;  // æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆ
 } ListNode;
 
-//Á´±íÍ·½á¹¹Ìå
+// æ“ä½œæ’¤é”€æ ˆå…ƒç´ ï¼šè®°å½•å¢åˆ æ”¹æ“ä½œ
 typedef struct {
-    ListNode *head;     // Á´±íÍ·Ö¸Õë
-    int length;         // Á´±íµ±Ç°ÔªËØ¸öÊı
+    int opType;     // 1-æ–°å¢ 2-åˆ é™¤ 3-ä¿®æ”¹
+    CampusSpot oldSite;   // æ“ä½œå‰åŸå§‹æ•°æ®
+} OpStackElem;
+
+// é¡ºåºæ ˆç»“æ„
+typedef struct {
+    OpStackElem data[MAX_STACK];
+    int top;
+} OpStack;
+
+// æµè§ˆå†å²æ ˆå…ƒç´ 
+typedef struct {
+    CampusSpot site;
+} ViewStackElem;
+
+typedef struct {
+    ViewStackElem data[MAX_STACK];
+    int top;
+} ViewStack;
+
+// å…¨å±€å®šä¹‰ä¸¤ä¸ªæ ˆ
+OpStack g_opStack;
+ViewStack g_viewStack;
+
+//é“¾è¡¨å¤´ç»“æ„ä½“
+typedef struct {
+    ListNode *head;     // é“¾è¡¨å¤´æŒ‡é’ˆ
+    int length;         // é“¾è¡¨å½“å‰å…ƒç´ ä¸ªæ•°
 } SpotLinkList;
-// ³õÊ¼»¯Á´±í
+
+// åˆå§‹åŒ–é“¾è¡¨
 void InitList(SpotLinkList *L) {
     L->head = NULL;
     L->length = 0;
 }
-// ÊÍ·Å
+// é‡Šæ”¾
 void DestroyList(SpotLinkList *L) {
     ListNode *p, *q;
     p = L->head;
@@ -39,18 +66,65 @@ void DestroyList(SpotLinkList *L) {
     L->head = NULL;
     L->length = 0;
 }
-// ĞÂÔöµØµã
+
+// åˆå§‹åŒ–æ“ä½œæ ˆ
+void InitOpStack(OpStack *s) {
+    s->top = -1;
+}
+
+// æ“ä½œæ ˆå…¥æ ˆ
+int PushOpStack(OpStack *s, OpStackElem e) {
+    if (s->top == MAX_STACK - 1) return 0;
+    s->data[++s->top] = e;
+    return 1;
+}
+
+// æ“ä½œæ ˆå‡ºæ ˆ
+int PopOpStack(OpStack *s, OpStackElem *e) {
+    if (s->top == -1) return 0;
+    *e = s->data[s->top--];
+    return 1;
+}
+
+// åˆ¤æ–­æ“ä½œæ ˆæ˜¯å¦ä¸ºç©º
+int IsOpStackEmpty(OpStack *s) {
+    return s->top == -1;
+}
+
+// æ¸…ç©ºæ“ä½œæ ˆ
+void ClearOpStack(OpStack *s) {
+    s->top = -1;
+}
+
+// åˆå§‹åŒ–æµè§ˆæ ˆ
+void InitViewStack(ViewStack *s) {
+    s->top = -1;
+}
+
+// æµè§ˆæ ˆå…¥æ ˆ
+int PushViewStack(ViewStack *s, ViewStackElem e) {
+    if (s->top == MAX_STACK - 1) return 0;
+    s->data[++s->top] = e;
+    return 1;
+}
+
+// æ¸…ç©ºæµè§ˆæ ˆ
+void ClearViewStack(ViewStack *s) {
+    s->top = -1;
+}
+
+// æ–°å¢åœ°ç‚¹
 int AddSpot(SpotLinkList *L, CampusSpot spot) {
-    // 1. ´´½¨ĞÂ½Úµã
+    // 1. åˆ›å»ºæ–°èŠ‚ç‚¹
     ListNode *newNode = (ListNode *)malloc(sizeof(ListNode));
     if (newNode == NULL) {
-        printf("ÄÚ´æ·ÖÅäÊ§°Ü£¬ÎŞ·¨ĞÂÔöµØµã£¡\n");
+        printf("å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ— æ³•æ–°å¢åœ°ç‚¹ï¼\n");
         return 0;
     }
     newNode->data = spot;
     newNode->next = NULL;
 
-    // 2. Î²²å
+    // 2. å°¾æ’
     if (L->head == NULL) {
         L->head = newNode;
     } else {
@@ -62,58 +136,58 @@ int AddSpot(SpotLinkList *L, CampusSpot spot) {
     }
 
     L->length++;
-    printf("µØµã¡¾%s¡¿ĞÂÔö³É¹¦£¡\n", spot.name);
+    printf("åœ°ç‚¹ã€%sã€‘æ–°å¢æˆåŠŸï¼\n", spot.name);
     return 1;
 }
-// ¸ù¾İµØµã±àºÅÉ¾³ı½Úµã
+// æ ¹æ®åœ°ç‚¹ç¼–å·åˆ é™¤èŠ‚ç‚¹
 int DeleteSpot(SpotLinkList *L, int id) {
     if (L->head == NULL) {
-        printf("Á´±íÎª¿Õ£¬ÎŞµØµã¿ÉÉ¾³ı£¡\n");
+        printf("é“¾è¡¨ä¸ºç©ºï¼Œæ— åœ°ç‚¹å¯åˆ é™¤ï¼\n");
         return 0;
     }
 
     ListNode *p = L->head, *q = NULL;
-    // 1. ²éÕÒÒªÉ¾³ıµÄ½Úµã
+    // 1. æŸ¥æ‰¾è¦åˆ é™¤çš„èŠ‚ç‚¹
     while (p != NULL && p->data.id != id) {
         q = p;
         p = p->next;
     }
 
-    // 2. Î´ÕÒµ½½Úµã
+    // 2. æœªæ‰¾åˆ°èŠ‚ç‚¹
     if (p == NULL) {
-        printf("Î´ÕÒµ½±àºÅÎª%dµÄµØµã£¡\n", id);
+        printf("æœªæ‰¾åˆ°ç¼–å·ä¸º%dçš„åœ°ç‚¹ï¼\n", id);
         return 0;
     }
 
-    // 3. É¾³ı½Úµã
+    // 3. åˆ é™¤èŠ‚ç‚¹
     if (q == NULL) {
-        // É¾³ıµÄÊÇÍ·½Úµã
+        // åˆ é™¤çš„æ˜¯å¤´èŠ‚ç‚¹
         L->head = p->next;
     } else {
-        // É¾³ıµÄÊÇÖĞ¼ä/Î²½Úµã
+        // åˆ é™¤çš„æ˜¯ä¸­é—´/å°¾èŠ‚ç‚¹
         q->next = p->next;
     }
 
     free(p);
     L->length--;
-    printf("±àºÅ%dµÄµØµãÉ¾³ı³É¹¦£¡\n", id);
+    printf("ç¼–å·%dçš„åœ°ç‚¹åˆ é™¤æˆåŠŸï¼\n", id);
     return 1;
 }
-// ¸ù¾İ±àºÅĞŞ¸ÄµØµãĞÅÏ¢
+// æ ¹æ®ç¼–å·ä¿®æ”¹åœ°ç‚¹ä¿¡æ¯
 int UpdateSpot(SpotLinkList *L, int id, CampusSpot newSpot) {
     ListNode *p = L->head;
     while (p != NULL) {
         if (p->data.id == id) {
             p->data = newSpot;
-            printf("±àºÅ%dµÄµØµã¡¾%s¡¿ĞŞ¸Ä³É¹¦£¡\n", id, newSpot.name);
+            printf("ç¼–å·%dçš„åœ°ç‚¹ã€%sã€‘ä¿®æ”¹æˆåŠŸï¼\n", id, newSpot.name);
             return 1;
         }
         p = p->next;
     }
-    printf("Î´ÕÒµ½±àºÅÎª%dµÄµØµã£¡\n", id);
+    printf("æœªæ‰¾åˆ°ç¼–å·ä¸º%dçš„åœ°ç‚¹ï¼\n", id);
     return 0;
 }
-// °´±àºÅ²éÑ¯
+// æŒ‰ç¼–å·æŸ¥è¯¢
 CampusSpot* SearchById(SpotLinkList *L, int id) {
     ListNode *p = L->head;
     while (p != NULL) {
@@ -125,14 +199,14 @@ CampusSpot* SearchById(SpotLinkList *L, int id) {
     return NULL;
 }
 
-// °´Ãû³Æ²éÑ¯£º±éÀú´òÓ¡Æ¥Åä½á¹û
+// æŒ‰åç§°æŸ¥è¯¢ï¼šéå†æ‰“å°åŒ¹é…ç»“æœ
 void SearchByName(SpotLinkList *L, char *name) {
     ListNode *p = L->head;
     int flag = 0;
-    printf("\n²éÑ¯½á¹û£º\n");
+    printf("\næŸ¥è¯¢ç»“æœï¼š\n");
     while (p != NULL) {
         if (strstr(p->data.name, name) != NULL) {
-            printf("±àºÅ£º%d  Ãû³Æ£º%s  ÃèÊö£º%s  ×ø±ê£º(%.2f, %.2f)\n",
+            printf("ç¼–å·ï¼š%d  åç§°ï¼š%s  æè¿°ï¼š%s  åæ ‡ï¼š(%.2f, %.2f)\n",
                    p->data.id, p->data.name, p->data.desc,
                    p->data.x, p->data.y);
             flag = 1;
@@ -140,19 +214,19 @@ void SearchByName(SpotLinkList *L, char *name) {
         p = p->next;
     }
     if (!flag) {
-        printf("Î´ÕÒµ½°üº¬¡¾%s¡¿µÄµØµã£¡\n", name);
+        printf("æœªæ‰¾åˆ°åŒ…å«ã€%sã€‘çš„åœ°ç‚¹ï¼\n", name);
     }
 }
-// ±éÀúÁ´±í£¬´òÓ¡ËùÓĞµØµãĞÅÏ¢
+// éå†é“¾è¡¨ï¼Œæ‰“å°æ‰€æœ‰åœ°ç‚¹ä¿¡æ¯
 void ShowAllSpots(SpotLinkList *L) {
     if (L->head == NULL) {
-        printf("µ±Ç°ÎŞ´æ´¢µÄĞ£Ô°µØµã£¡\n");
+        printf("å½“å‰æ— å­˜å‚¨çš„æ ¡å›­åœ°ç‚¹ï¼\n");
         return;
     }
 
     ListNode *p = L->head;
-    printf("\n===== Ğ£Ô°µØµãÁĞ±í£¨¹²%d¸ö£©=====\n", L->length);
-    printf("±àºÅ\tÃû³Æ\t\tÃèÊö\t\t×ø±ê\n");
+    printf("\n===== æ ¡å›­åœ°ç‚¹åˆ—è¡¨ï¼ˆå…±%dä¸ªï¼‰=====\n", L->length);
+    printf("ç¼–å·\tåç§°\t\tæè¿°\t\tåæ ‡\n");
     while (p != NULL) {
         printf("%d\t%s\t\t%s\t(%.2f, %.2f)\n",
                p->data.id, p->data.name,
@@ -166,43 +240,43 @@ int main() {
     InitList(&spotList);
     int choice;
 
-    // Ô¤´æ²âÊÔµØµã
-    CampusSpot test1 = {1, "µÚÒ»½ÌÑ§Â¥", "Ö÷½ÌÑ§Â¥£¬Ğ£Ô°ÖĞĞÄ", 100.0, 200.0};
-    CampusSpot test2 = {2, "µÚÒ»Ê³ÌÃ", "Ñ§ÉúÒ»Ê³ÌÃ£¬¿¿½üËŞÉáÇø", 300.0, 400.0};
+    // é¢„å­˜æµ‹è¯•åœ°ç‚¹
+    CampusSpot test1 = {1, "ç¬¬ä¸€æ•™å­¦æ¥¼", "ä¸»æ•™å­¦æ¥¼ï¼Œæ ¡å›­ä¸­å¿ƒ", 100.0, 200.0};
+    CampusSpot test2 = {2, "ç¬¬ä¸€é£Ÿå ‚", "å­¦ç”Ÿä¸€é£Ÿå ‚ï¼Œé è¿‘å®¿èˆåŒº", 300.0, 400.0};
     AddSpot(&spotList, test1);
     AddSpot(&spotList, test2);
 
     while (true) {
-        printf("\n===== Ğ£Ô°µ¼º½ÏµÍ³ V1.0£¨Á´±í°æ£©=====\n");
-        printf("1. ĞÂÔöµØµã\n");
-        printf("2. É¾³ıµØµã\n");
-        printf("3. ĞŞ¸ÄµØµã\n");
-        printf("4. ²éÑ¯µØµã£¨°´±àºÅ£©\n");
-        printf("5. ²éÑ¯µØµã£¨°´Ãû³Æ£©\n");
-        printf("6. Õ¹Ê¾ËùÓĞµØµã\n");
-        printf("0. ÍË³öÏµÍ³\n");
-        printf("ÇëÊäÈë²Ù×÷Ñ¡Ïî£º");
+        printf("\n===== æ ¡å›­å¯¼èˆªç³»ç»Ÿ V1.0ï¼ˆé“¾è¡¨ç‰ˆï¼‰=====\n");
+        printf("1. æ–°å¢åœ°ç‚¹\n");
+        printf("2. åˆ é™¤åœ°ç‚¹\n");
+        printf("3. ä¿®æ”¹åœ°ç‚¹\n");
+        printf("4. æŸ¥è¯¢åœ°ç‚¹ï¼ˆæŒ‰ç¼–å·ï¼‰\n");
+        printf("5. æŸ¥è¯¢åœ°ç‚¹ï¼ˆæŒ‰åç§°ï¼‰\n");
+        printf("6. å±•ç¤ºæ‰€æœ‰åœ°ç‚¹\n");
+        printf("0. é€€å‡ºç³»ç»Ÿ\n");
+        printf("è¯·è¾“å…¥æ“ä½œé€‰é¡¹ï¼š");
         scanf("%d", &choice);
-        getchar();  // Çå³ı»º³åÇø»»ĞĞ·û
+        getchar();  // æ¸…é™¤ç¼“å†²åŒºæ¢è¡Œç¬¦
 
         switch (choice) {
             case 1: {
                 CampusSpot newSpot;
-                printf("ÇëÊäÈëµØµã±àºÅ£º");
+                printf("è¯·è¾“å…¥åœ°ç‚¹ç¼–å·ï¼š");
                 scanf("%d", &newSpot.id);
                 getchar();
-                printf("ÇëÊäÈëµØµãÃû³Æ£º");
+                printf("è¯·è¾“å…¥åœ°ç‚¹åç§°ï¼š");
                 gets(newSpot.name);
-                printf("ÇëÊäÈëµØµãÃèÊö£º");
+                printf("è¯·è¾“å…¥åœ°ç‚¹æè¿°ï¼š");
                 gets(newSpot.desc);
-                printf("ÇëÊäÈëµØµã×ø±êx¡¢y£¨ÓÃ¿Õ¸ñ·Ö¸ô£©£º");
+                printf("è¯·è¾“å…¥åœ°ç‚¹åæ ‡xã€yï¼ˆç”¨ç©ºæ ¼åˆ†éš”ï¼‰ï¼š");
                 scanf("%f %f", &newSpot.x, &newSpot.y);
                 AddSpot(&spotList, newSpot);
                 break;
             }
             case 2: {
                 int id;
-                printf("ÇëÊäÈëÒªÉ¾³ıµÄµØµã±àºÅ£º");
+                printf("è¯·è¾“å…¥è¦åˆ é™¤çš„åœ°ç‚¹ç¼–å·ï¼š");
                 scanf("%d", &id);
                 DeleteSpot(&spotList, id);
                 break;
@@ -210,35 +284,35 @@ int main() {
             case 3: {
                 int id;
                 CampusSpot newSpot;
-                printf("ÇëÊäÈëÒªĞŞ¸ÄµÄµØµã±àºÅ£º");
+                printf("è¯·è¾“å…¥è¦ä¿®æ”¹çš„åœ°ç‚¹ç¼–å·ï¼š");
                 scanf("%d", &id);
                 getchar();
-                printf("ÇëÊäÈëĞÂµÄµØµãÃû³Æ£º");
+                printf("è¯·è¾“å…¥æ–°çš„åœ°ç‚¹åç§°ï¼š");
                 gets(newSpot.name);
-                printf("ÇëÊäÈëĞÂµÄµØµãÃèÊö£º");
+                printf("è¯·è¾“å…¥æ–°çš„åœ°ç‚¹æè¿°ï¼š");
                 gets(newSpot.desc);
-                printf("ÇëÊäÈëĞÂµÄ×ø±êx¡¢y£º");
+                printf("è¯·è¾“å…¥æ–°çš„åæ ‡xã€yï¼š");
                 scanf("%f %f", &newSpot.x, &newSpot.y);
-                newSpot.id = id;  // ±£Ö¤±àºÅÒ»ÖÂ
+                newSpot.id = id;  // ä¿è¯ç¼–å·ä¸€è‡´
                 UpdateSpot(&spotList, id, newSpot);
                 break;
             }
             case 4: {
                 int id;
-                printf("ÇëÊäÈëÒª²éÑ¯µÄµØµã±àºÅ£º");
+                printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„åœ°ç‚¹ç¼–å·ï¼š");
                 scanf("%d", &id);
                 CampusSpot *spot = SearchById(&spotList, id);
                 if (spot) {
-                    printf("\n²éÑ¯½á¹û£º\n±àºÅ£º%d  Ãû³Æ£º%s  ÃèÊö£º%s  ×ø±ê£º(%.2f, %.2f)\n",
+                    printf("\næŸ¥è¯¢ç»“æœï¼š\nç¼–å·ï¼š%d  åç§°ï¼š%s  æè¿°ï¼š%s  åæ ‡ï¼š(%.2f, %.2f)\n",
                            spot->id, spot->name, spot->desc, spot->x, spot->y);
                 } else {
-                    printf("Î´ÕÒµ½¸ÃµØµã£¡\n");
+                    printf("æœªæ‰¾åˆ°è¯¥åœ°ç‚¹ï¼\n");
                 }
                 break;
             }
             case 5: {
                 char name[50];
-                printf("ÇëÊäÈëÒª²éÑ¯µÄµØµã¹Ø¼ü´Ê£º");
+                printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„åœ°ç‚¹å…³é”®è¯ï¼š");
                 gets(name);
                 SearchByName(&spotList, name);
                 break;
@@ -247,11 +321,11 @@ int main() {
                 ShowAllSpots(&spotList);
                 break;
             case 0:
-                DestroyList(&spotList);  // ÍË³öÇ°ÊÍ·ÅÄÚ´æ
-                printf("¸ĞĞ»Ê¹ÓÃĞ£Ô°µ¼º½ÏµÍ³V1.0£¨Á´±í°æ£©£¬ÔÙ¼û£¡\n");
+                DestroyList(&spotList);  // é€€å‡ºå‰é‡Šæ”¾å†…å­˜
+                printf("æ„Ÿè°¢ä½¿ç”¨æ ¡å›­å¯¼èˆªç³»ç»ŸV1.0ï¼ˆé“¾è¡¨ç‰ˆï¼‰ï¼Œå†è§ï¼\n");
                 return 0;
             default:
-                printf("ÊäÈë´íÎó£¬ÇëÖØĞÂÑ¡Ôñ£¡\n");
+                printf("è¾“å…¥é”™è¯¯ï¼Œè¯·é‡æ–°é€‰æ‹©ï¼\n");
         }
     }
 }
