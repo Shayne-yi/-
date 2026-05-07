@@ -327,13 +327,16 @@ int main() {
     AddSpot(&spotList, test2);
 
     while (true) {
-        printf("\n===== 校园导航系统 V1.0（链表版）=====\n");
+        printf("\n===== 校园导航系统 V2.0=====\n");
         printf("1. 新增地点\n");
         printf("2. 删除地点\n");
         printf("3. 修改地点\n");
         printf("4. 查询地点（按编号）\n");
         printf("5. 查询地点（按名称）\n");
-        printf("6. 展示所有地点\n");
+        printf("6. 撤销上一步操作\n");//V2.0新增
+        printf("7. 查看浏览记录\n");//V2.0新增
+        printf("8. 清空历史\n");//V2.0新增
+        printf("9. 展示所有地点\n");
         printf("0. 退出系统\n");
         printf("请输入操作选项：");
         scanf("%d", &choice);
@@ -397,7 +400,19 @@ int main() {
                 SearchByName(&spotList, name);
                 break;
             }
-            case 6:
+            case 6: {
+                UndoOperate(&spotList);
+                break;
+            }
+			case 7: {
+                ShowViewHistory();
+                break;
+            }
+			case 8:{
+                ClearAllHistory(); 
+                break;
+            }
+            case 9:
                 ShowAllSpots(&spotList);
                 break;
             case 0:
