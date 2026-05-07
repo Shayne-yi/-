@@ -137,8 +137,16 @@ int AddSpot(SpotLinkList *L, CampusSpot spot) {
 
     L->length++;
     printf("地点【%s】新增成功！\n", spot.name);
+
+    //记录操作
+    OpStackElem e;
+        e.opType = 1;
+        e.oldSite = newNode->data;
+        PushOpStack(&g_opStack, e);
+        printf("操作已记录，可撤销！\n");
     return 1;
 }
+
 // 根据地点编号删除节点
 int DeleteSpot(SpotLinkList *L, int id) {
     if (L->head == NULL) {
@@ -171,8 +179,16 @@ int DeleteSpot(SpotLinkList *L, int id) {
     free(p);
     L->length--;
     printf("编号%d的地点删除成功！\n", id);
+
+    //记录操作
+    OpStackElem e;
+        e.opType = 2;
+        e.oldSite = q->data;
+        PushOpStack(&g_opStack, e);
+        printf("操作已记录，可撤销！\n");
     return 1;
 }
+
 // 根据编号修改地点信息
 int UpdateSpot(SpotLinkList *L, int id, CampusSpot newSpot) {
     ListNode *p = L->head;
@@ -185,8 +201,16 @@ int UpdateSpot(SpotLinkList *L, int id, CampusSpot newSpot) {
         p = p->next;
     }
     printf("未找到编号为%d的地点！\n", id);
+
+    //记录操作
+    OpStackElem e;
+        e.opType = 3;
+        e.oldSite = p->data;
+        PushOpStack(&g_opStack, e);
+        printf("修改已记录，可撤销！\n");
     return 0;
 }
+
 // 按编号查询
 CampusSpot* SearchById(SpotLinkList *L, int id) {
     ListNode *p = L->head;
@@ -233,6 +257,11 @@ void ShowAllSpots(SpotLinkList *L) {
                p->data.desc, p->data.x, p->data.y);
         p = p->next;
     }
+
+    //浏览记录压栈
+        ViewStackElem ve;
+        ve.site = p->data;
+        PushViewStack(&g_viewStack, ve);
     printf("================================\n\n");
 }
 
