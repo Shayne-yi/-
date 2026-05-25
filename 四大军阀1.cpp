@@ -184,6 +184,7 @@ int DeleteSpot(SpotLinkList *L, int id) {
     OpStackElem e;
     e.opType = 2;
     e.oldSite = q->data;
+	strcpy(e.opLog,"删除校园地点");
     PushOpStack(&g_opStack, e);
     printf("操作已记录，可撤销！\n");
     return 1;
@@ -194,6 +195,7 @@ int UpdateSpot(SpotLinkList *L, int id, CampusSpot newSpot) {
     ListNode *p = L->head;
     while (p != NULL) {
         if (p->data.id == id) {
+			CampusSpot oldData = p->data;
             p->data = newSpot;
             printf("编号%d的地点【%s】修改成功！\n", id, newSpot.name);
 			OpStackElem e;
@@ -329,7 +331,7 @@ int main() {
     AddSpot(&spotList, test2);
 
     while (true) {
-        printf("\n===== 校园导航系统 V2.0=====\n");
+        printf("\n===== 校园导航系统 V3.0=====\n");
         printf("1. 新增地点\n");
         printf("2. 删除地点\n");
         printf("3. 修改地点\n");
@@ -338,7 +340,8 @@ int main() {
         printf("6. 撤销上一步操作\n");//V2.0新增
         printf("7. 查看浏览记录\n");//V2.0新增
         printf("8. 清空历史\n");//V2.0新增
-        printf("9. 展示所有地点\n");
+		printf("9. 查看全部操作日志\n");//V3.0新增
+        printf("10. 展示所有地点\n");
         printf("0. 退出系统\n");
         printf("请输入操作选项：");
         scanf("%d", &choice);
@@ -414,12 +417,16 @@ int main() {
                 ClearAllHistory(); 
                 break;
             }
-            case 9:
+			case 9:{
+			    showAllOpHistory();
+				break;
+			}	
+            case 10:
                 ShowAllSpots(&spotList);
                 break;
             case 0:
                 DestroyList(&spotList);  // 退出前释放内存
-                printf("感谢使用校园导航系统V1.0（链表版），再见！\n");
+                printf("感谢使用校园导航系统V3.0，再见！\n");
                 return 0;
             default:
                 printf("输入错误，请重新选择！\n");
