@@ -250,18 +250,21 @@ void ShowAllSpots(SpotLinkList *L) {
     ListNode *p = L->head;
     printf("\n===== 校园地点列表（共%d个）=====\n", L->length);
     printf("编号\t名称\t\t描述\t\t坐标\n");
+	ListNode *last = NULL;
     while (p != NULL) {
         printf("%d\t%s\t\t%s\t(%.2f, %.2f)\n",
-               p->data.id, p->data.name,
-               p->data.desc, p->data.x, p->data.y);
+        p->data.id, p->data.name,
+        p->data.desc, p->data.x, p->data.y);
         p = p->next;
     }
-
-    //浏览记录压栈
-        ViewStackElem ve;
-        ve.site = p->data;
-        PushViewStack(&g_viewStack, ve);
-    printf("================================\n\n");
+    if(last != NULL){
+	     ViewStackElem ve;
+	     ve.site = last->data;
+	     PushViewStack(&g_viewStack, ve);
+	 }    
+    printf("\n请按任意键返回");
+    fflush(stdin);
+    getchar();
 }
 
 // 撤销上一步增删改操作
