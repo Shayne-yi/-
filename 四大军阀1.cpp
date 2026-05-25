@@ -9,6 +9,7 @@ typedef struct {
     char name[50];      // 地点名称
     char desc[100];     // 地点描述
     float x, y;         // 地点坐标
+    char type[30];      //新增地点分类
 } CampusSpot;
 
 //链表节点结构体
@@ -21,6 +22,7 @@ typedef struct Node {
 typedef struct {
     int opType;     // 1-新增 2-删除 3-修改
     CampusSpot oldSite;   // 操作前原始数据
+    char opLog[100];     //新增：操作文字记录
 } OpStackElem;
 
 // 顺序栈结构
@@ -137,13 +139,13 @@ int AddSpot(SpotLinkList *L, CampusSpot spot) {
 
     L->length++;
     printf("地点【%s】新增成功！\n", spot.name);
-
     //记录操作
     OpStackElem e;
-        e.opType = 1;
-        e.oldSite = newNode->data;
-        PushOpStack(&g_opStack, e);
-        printf("操作已记录，可撤销！\n");
+    e.opType = 1;
+    e.oldSite = newNode->data;
+	strcpy(e.opLog,"新增校园地点");
+    PushOpStack(&g_opStack, e);
+    printf("操作已记录，可撤销！\n");
     return 1;
 }
 
@@ -179,13 +181,11 @@ int DeleteSpot(SpotLinkList *L, int id) {
     free(p);
     L->length--;
     printf("编号%d的地点删除成功！\n", id);
-
-    //记录操作
     OpStackElem e;
-        e.opType = 2;
-        e.oldSite = q->data;
-        PushOpStack(&g_opStack, e);
-        printf("操作已记录，可撤销！\n");
+    e.opType = 2;
+    e.oldSite = q->data;
+    PushOpStack(&g_opStack, e);
+    printf("操作已记录，可撤销！\n");
     return 1;
 }
 
@@ -196,18 +196,17 @@ int UpdateSpot(SpotLinkList *L, int id, CampusSpot newSpot) {
         if (p->data.id == id) {
             p->data = newSpot;
             printf("编号%d的地点【%s】修改成功！\n", id, newSpot.name);
+			OpStackElem e;
+			e.opType = 3;
+			e.oldSite = p->data;
+			strcpy(e.opLog,"修改校园地点");
+			PushOpStack(&g_opStack, e);
+			printf("修改已记录，可撤销！\n");
             return 1;
         }
         p = p->next;
     }
     printf("未找到编号为%d的地点！\n", id);
-
-    //记录操作
-    OpStackElem e;
-        e.opType = 3;
-        e.oldSite = p->data;
-        PushOpStack(&g_opStack, e);
-        printf("修改已记录，可撤销！\n");
     return 0;
 }
 
