@@ -264,7 +264,7 @@ void ShowAllSpots(SpotLinkList *L) {
 	     ve.site = last->data;
 	     PushViewStack(&g_viewStack, ve);
 	 }    
-    printf("\n请按任意键返回");
+    printf("\n请按任意键返回...");
     fflush(stdin);
     getchar();
 }
@@ -317,6 +317,42 @@ void ClearAllHistory() {
     ClearOpStack(&g_opStack);
     ClearViewStack(&g_viewStack);
     printf("所有历史记录已清空！\n");
+}
+
+// 查看全部操作历史记录
+void showAllOpHistory()
+{
+    printf("===== 全部操作历史 =====\n");
+       if(IsOpStackEmpty(&g_opStack)){
+           printf("暂无任何操作记录！\n");
+           printf("请按任意键继续...\n");
+           int c;
+           while( (c = getchar()) != '\n' && c != EOF );
+           getchar();
+           return;
+       }
+    // 倒序遍历
+    for(int i = g_opStack.top; i >= 0; i--)
+   	   {
+   	        OpStackElem op = g_opStack.data[i];
+   	        int num = g_opStack.top - i + 1;
+   	        if(op.opType == 1)
+   	        {
+   	            printf("%d. 新增校园地点\n", num);
+   	        }
+   	        else if(op.opType == 2)
+   	        {
+   	            printf("%d. 删除校园地点\n", num);
+   	        }
+   			else if(op.opType == 3)
+   	        {
+   	            printf("%d. 修改校园地点\n", num);
+   	        }
+   	    }
+   	    printf("\n请按任意键返回主菜单...");
+       int c;
+       while( (c = getchar()) != '\n' && c != EOF );
+       getchar();
 }
 
 int main() {
