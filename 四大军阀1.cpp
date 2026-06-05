@@ -513,16 +513,59 @@ void showAllOpHistory()
 int main() {
     SpotLinkList spotList;
     InitList(&spotList);
+	 InitList(&g_SpotList);   //初始化主链表
+	InitOpStack(&g_opStack); //初始化撤销栈
+	InitViewStack(&g_viewStack);//初始化浏览栈
+	//V4.0初始化分类树
+	g_ClassRoot = InitTree("校园总目录");
+	//一级分类：4大区域
+	AddNode(g_ClassRoot,"教学楼区",TEACH_BUILD);
+	AddNode(g_ClassRoot,"生活住宿区",LIVE_AREA);
+	AddNode(g_ClassRoot,"体育运动区",SPORT_AREA);
+	AddNode(g_ClassRoot,"其他区域",OTHER_AREA);
+	//二级子分类示例（教学楼下加弘毅楼、实验楼）
+	AddNode(g_ClassRoot->child[0],"弘毅楼",TEACH_BUILD);
+	AddNode(g_ClassRoot->child[0],"理工实验楼",TEACH_BUILD);
+	AddNode(g_ClassRoot->child[1],"一号宿舍楼",LIVE_AREA);
+	
     int choice;
 
-    // 预存测试地点
-    CampusSpot test1 = {1, "第一教学楼", "主教学楼，校园中心", 100.0, 200.0};
-    CampusSpot test2 = {2, "第一食堂", "学生一食堂，靠近宿舍区", 300.0, 400.0};
+     // 预存测试地点
+    CampusSpot test1 = {1, "教学办公楼", "主教学楼，校园中心", 100.0, 200.0,""};
+    CampusSpot test2 = {2, "教学实验楼", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test3 = {3, "弘毅楼101", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test4 = {4, "弘毅楼305", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test5 = {5, "教学实训楼", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test6 = {6, "三号宿舍楼", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test7 = {7, "教学后勤楼", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test8 = {8, "图书馆阅览区", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test9 = {9, "艺术表演大厅", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
+    CampusSpot test10 = {10, "教学办公楼", "学生一食堂，靠近宿舍区", 300.0, 400.0,""};
     AddSpot(&spotList, test1);
     AddSpot(&spotList, test2);
+    AddSpot(&spotList, test3);
+    AddSpot(&spotList, test4);
+    AddSpot(&spotList, test5);
+    AddSpot(&spotList, test6);
+    AddSpot(&spotList, test7);
+    AddSpot(&spotList, test8);
+    AddSpot(&spotList, test9);
+    AddSpot(&spotList, test10);
+
+	//=====V4预存地点自动绑定分类（新增在末尾）====
+	BindSpotToClass(g_ClassRoot,"教学楼区",test1);
+	BindSpotToClass(g_ClassRoot,"理工实验楼",test2);
+	BindSpotToClass(g_ClassRoot,"弘毅楼",test3);
+	BindSpotToClass(g_ClassRoot,"弘毅楼",test4);
+	BindSpotToClass(g_ClassRoot,"理工实验楼",test5);
+	BindSpotToClass(g_ClassRoot,"一号宿舍楼",test6);
+	BindSpotToClass(g_ClassRoot,"教学楼区",test7);
+	BindSpotToClass(g_ClassRoot,"其他区域",test8);
+	BindSpotToClass(g_ClassRoot,"其他区域",test9);
+	BindSpotToClass(g_ClassRoot,"教学楼区",test10);
 
     while (true) {
-        printf("\n===== 校园导航系统 V3.0=====\n");
+        printf("\n===== 校园导航系统 V4.0=====\n");
         printf("1. 新增地点\n");
         printf("2. 删除地点\n");
         printf("3. 修改地点\n");
@@ -532,7 +575,9 @@ int main() {
         printf("7. 查看浏览记录\n");//V2.0新增
         printf("8. 清空历史\n");//V2.0新增
 		printf("9. 查看全部操作日志\n");//V3.0新增
-        printf("10. 展示所有地点\n");
+		printf("10. 按照分类筛选地点\n");//V4.0新增
+        printf("11.输入关键词匹配分类\n");//V4.0新增
+        printf("12. 展示所有地点\n");
         printf("0. 退出系统\n");
         printf("请输入操作选项：");
         scanf("%d", &choice);
@@ -612,12 +657,26 @@ int main() {
 			    showAllOpHistory();
 				break;
 			}	
-            case 10:
+			case 10:{
+			    char cls[MAX_CLASS_NAME];
+			    printf("输入要查询的分类名(教学楼区/弘毅楼/一号宿舍楼):");
+			    scanf("%s",cls);
+			    QueryByClass(g_ClassRoot,cls);
+			    break;
+			}
+			case 11:{
+			    char key[50];
+			    printf("输入前缀关键词(例:弘毅):");
+			    scanf("%s",key);
+			    PrefixSearchTree(g_ClassRoot,key);
+			    break;
+			}
+            case 12:
                 ShowAllSpots(&spotList);
                 break;
             case 0:
                 DestroyList(&spotList);  // 退出前释放内存
-                printf("感谢使用校园导航系统V3.0，再见！\n");
+                printf("感谢使用校园导航系统V4.0，再见！\n");
                 return 0;
             default:
                 printf("输入错误，请重新选择！\n");
