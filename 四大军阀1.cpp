@@ -2,6 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#define MAX_STACK 100
+#define MAXNAME 50   // 地点名称最大长度
+#define MAXINFO 200  // 地点介绍最大长度
+#define MAXNAME 50  //地点名称最大长度
+#define MAXINFO 200 //地点介绍最大长度
+#define MAX_CHILD 10    //每个分类节点最多10个子分类
+#define MAX_CLASS_NAME 30 //分类名称字符长度
+
+//分类枚举：区分一级大类
+typedef enum {
+    TEACH_BUILD,    //教学楼
+    LIVE_AREA,      //生活区
+    SPORT_AREA,     //运动区
+    OTHER_AREA      //其他区域
+}AreaType;
 
 //地点信息结构体
 typedef struct {
@@ -41,15 +56,26 @@ typedef struct {
     int top;
 } ViewStack;
 
-// 全局定义两个栈
-OpStack g_opStack;
-ViewStack g_viewStack;
-
 //链表头结构体
 typedef struct {
     ListNode *head;     // 链表头指针
     int length;         // 链表当前元素个数
 } SpotLinkList;
+
+//分类树节点：存储分类名称+挂载该分类下所有地点链表
+typedef struct ClassTreeNode{
+    char className[MAX_CLASS_NAME]; //分类名：教学楼/弘义楼/3楼
+    AreaType type;                 //所属大区域类型
+    struct ClassTreeNode *child[MAX_CHILD]; //子分类数组
+    int childCnt;                  //当前子节点数量
+    ListNode *spotListHead;        //挂载：该分类下所有地点
+}ClassTreeNode,*ClassTree;
+
+// 全局定义两个栈
+OpStack g_opStack;
+ViewStack g_viewStack;
+SpotLinkList g_SpotList;//全局地点主链表
+ClassTree g_ClassRoot; //V4新增：全局分类树根节点
 
 // 初始化链表
 void InitList(SpotLinkList *L) {
