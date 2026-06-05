@@ -141,6 +141,65 @@ void ClearViewStack(ViewStack *s) {
     s->top = -1;
 }
 
+//初始化空分类树根节点
+ClassTree InitClassTree(char rootName[]){
+    ClassTree root = (ClassTree)malloc(sizeof(ClassTreeNode));
+    strcpy(root->className,rootName);
+    root->childCnt=0;
+    root->spotListHead=NULL;
+    for(int i=0;i<MAX_CHILD;i++) root->child[i]=NULL;
+    return root;
+}
+
+//向父节点添加子分类
+int AddClassNode(ClassTree parent,char subName[],AreaType t){
+    if(parent->childCnt >= MAX_CHILD){
+        printf("该分类子分类已满！\n");
+        return 0;
+    }
+    ClassTree newNode = InitClassTree(subName);
+    newNode->type = t;
+    parent->child[parent->childCnt++] = newNode;
+    return 1;
+}
+
+//递归查找分类节点
+static void FindClass(ClassTree p, const char *name, ClassTree *resNode)
+{
+    if (!p) return;
+    if (strcmp(p->className, name) == 0)
+    {
+        *resNode = p;
+        return;
+    }
+    for (int i = 0; i < p->childCnt; i++)
+    {
+        FindClass(p->child[i], name, resNode);
+    }
+}
+
+//前缀搜索DFS
+static void DfsSearch(ClassTree p, char *k)
+{
+    if (!p) return;
+    //分类名前缀匹配
+    if (strstr(p->className, k) != NULL)
+    {
+        printf("匹配分类：%s\n", p->className);
+        //顺带输出该分类所有地点
+        ListNode *tmp = p->spotListHead;
+        while (tmp)
+        {
+            printf("→地点：%s\n", tmp->data.name);
+            tmp = tmp->next;
+        }
+    }
+    for (int i = 0; i < p->childCnt; i++)
+    {
+        DfsSearch(p->child[i], k);
+    }
+}
+
 // 新增地点
 int AddSpot(SpotLinkList *L, CampusSpot spot) {
     // 1. 创建新节点
