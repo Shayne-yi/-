@@ -200,6 +200,76 @@ static void DfsSearch(ClassTree p, char *k)
     }
 }
 
+//初始化空分类树根节点
+ClassTree InitTree(const char rootName[])
+{
+    ClassTree root = (ClassTree)malloc(sizeof(ClassTreeNode));
+    strcpy(root->className, rootName);
+    root->childCnt = 0;
+    root->spotListHead = NULL;
+    for (int i = 0; i < MAX_CHILD; i++)
+        root->child[i] = NULL;
+    return root;
+}
+
+//向父节点添加子分类
+ClassTree AddNode(ClassTree parent, const char subName[], AreaType t)
+{
+    if (parent->childCnt >= MAX_CHILD)
+    {
+        printf("该分类子分类已满！\n");
+        return 0;
+    }
+    ClassTree newNode = InitTree(subName);
+    newNode->type = t;
+    parent->child[parent->childCnt++] = newNode;
+    return 0;
+}
+
+//将一个地点绑定到指定分类
+static void FindClass(ClassTree p, const char *name, ClassTree *resNode);
+int BindSpotToClass(ClassTree root, const char className[], CampusSpot spot)
+{
+    ClassTree findNode = NULL;
+    FindClass(root, className, &findNode); //调用外部查找函数
+    if (!findNode)
+    {
+        printf("无此分类，绑定失败！\n");
+        return 0;
+    }
+    //复用原有AddSpot逻辑，插入该分类专属链表
+    ListNode *newN = (ListNode*)malloc(sizeof(ListNode));
+    newN->data = spot;
+    newN->next = findNode->spotListHead;
+    findNode->spotListHead = newN;
+    return 1;
+}
+
+//【菜单调用】按分类名称遍历输出该分类所有地点
+void QueryByClass(ClassTree root, char className[])
+{
+    ClassTree findNode = NULL;
+    FindClass(root, className, &findNode); //复用外部查找
+    if (!findNode || !findNode->spotListHead)
+    {
+        printf("该分类下暂无地点数据\n");
+        return;
+    }
+    printf("====【%s】分类下所有地点====\n", className);
+    ListNode *p = findNode->spotListHead;
+    while (p)
+    {
+        printf("编号:%d 名称:%s 坐标(%.2f,%.2f)\n", p->data.id, p->data.name, p->data.x, p->data.y);
+        p = p->next;
+    }
+}
+
+//前缀快速匹配（
+void PrefixSearchTree(ClassTree root, char key[])
+{
+    DfsSearch(root, key); //调用外部DFS
+}
+
 // 新增地点
 int AddSpot(SpotLinkList *L, CampusSpot spot) {
     // 1. 创建新节点
