@@ -372,6 +372,43 @@ void PrintPath(Graph *g,PathRes *res,int start,int end){
     }
     printf("\n");
 }
+//6.菜单函数：导航功能入口
+void NavigatePath(Graph *g){
+    if(g->spotCount < 2){
+        printf("校园地点不足，无法进行路径规划！\n");
+        return;
+    }
+    //打印全部地点列表供用户选择
+    printf("====校园所有导航节点====\n");
+    for(int i=0;i<g->spotCount;i++){
+        printf("%d: %s\n",i,g->spotList[i].name);
+    }
+    int s,e;
+    printf("请输入起点编号：");
+    scanf("%d",&s);
+    printf("请输入终点编号：");
+    scanf("%d",&e);
+    PathRes pr;
+    Dijkstra(g,s,&pr);
+    PrintPath(g,&pr,s,e);
+}
+
+//7.手动新增道路菜单函数
+void MenuAddRoad(Graph *g){
+    int a,b,dis;
+    printf("====添加两点通行道路====\n");
+    for(int i=0;i<g->spotCount;i++){
+        printf("%d: %s\n",i,g->spotList[i].name);
+    }
+    printf("起点编号：");
+    scanf("%d",&a);
+    printf("终点编号：");
+    scanf("%d",&b);
+    printf("步行距离(米)：");
+    scanf("%d",&dis);
+    AddRoad(g,a,b,dis);
+    printf("道路添加完成！\n");
+}
 
 // 新增地点
 int AddSpot(SpotLinkList *L, CampusSpot spot) {
