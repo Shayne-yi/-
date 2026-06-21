@@ -667,6 +667,12 @@ int main() {
 	AddNode(g_ClassRoot->child[0],"弘毅楼",TEACH_BUILD);
 	AddNode(g_ClassRoot->child[0],"理工实验楼",TEACH_BUILD);
 	AddNode(g_ClassRoot->child[1],"一号宿舍楼",LIVE_AREA);
+
+	//V5 初始化导航图
+	InitGraph(&g_CampusGraph);
+	//示例预置道路（你可根据自己测试地点修改下标和距离）
+	AddRoad(&g_CampusGraph,0,1,120);
+	AddRoad(&g_CampusGraph,1,2,80);、
 	
     int choice;
 
@@ -705,7 +711,7 @@ int main() {
 	BindSpotToClass(g_ClassRoot,"教学楼区",test10);
 
     while (true) {
-        printf("\n===== 校园导航系统 V4.0=====\n");
+        printf("\n===== 校园导航系统 V5.0=====\n");
         printf("1. 新增地点\n");
         printf("2. 删除地点\n");
         printf("3. 修改地点\n");
@@ -717,7 +723,9 @@ int main() {
 		printf("9. 查看全部操作日志\n");//V3.0新增
 		printf("10. 按照分类筛选地点\n");//V4.0新增
         printf("11.输入关键词匹配分类\n");//V4.0新增
-        printf("12. 展示所有地点\n");
+		printf("12.新增地点通行道路\n");//V5.0新增
+        printf("13.两点最短路径导航\n");//V5.0新增
+        printf("14. 展示所有地点\n");
         printf("0. 退出系统\n");
         printf("请输入操作选项：");
         scanf("%d", &choice);
@@ -736,6 +744,21 @@ int main() {
                 printf("请输入地点坐标x、y（用空格分隔）：");
                 scanf("%f %f", &newSpot.x, &newSpot.y);
                 AddSpot(&spotList, newSpot);
+
+				char clsName[MAX_CLASS_NAME];
+				printf("\n请输入该地点所属分类名称(如:弘毅楼/教学楼):");
+				scanf("%s",clsName);
+				// 清理本次输入的换行，只在case内部消耗
+				while(getchar() != '\n');
+				int res = BindSpotToClass(g_ClassRoot,clsName,newSpot);
+				if(res == 1)
+				{
+				    printf("该地点已成功绑定对应分类！\n");
+				}
+				else
+				{
+				    printf("未查询到该分类，仅保存地点，未绑定分类！\n");
+				}
                 break;
             }
             case 2: {
@@ -811,12 +834,18 @@ int main() {
 			    PrefixSearchTree(g_ClassRoot,key);
 			    break;
 			}
-            case 12:
+			case 12
+			    MenuAddRoad(&g_CampusGraph);
+			    break;
+			case 13:
+			    NavigatePath(&g_CampusGraph);
+			    break;
+            case 14:
                 ShowAllSpots(&spotList);
                 break;
             case 0:
                 DestroyList(&spotList);  // 退出前释放内存
-                printf("感谢使用校园导航系统V4.0，再见！\n");
+                printf("感谢使用校园导航系统V5.0，再见！\n");
                 return 0;
             default:
                 printf("输入错误，请重新选择！\n");
