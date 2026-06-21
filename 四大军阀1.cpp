@@ -9,6 +9,8 @@
 #define MAXINFO 200 //地点介绍最大长度
 #define MAX_CHILD 10    //每个分类节点最多10个子分类
 #define MAX_CLASS_NAME 30 //分类名称字符长度
+#define MAX_SPOT_NUM 50   //校园最多50个地点（图顶点上限）
+#define INF 99999         //无穷大，代表两点无直接道路连通
 
 //分类枚举：区分一级大类
 typedef enum {
@@ -71,11 +73,25 @@ typedef struct ClassTreeNode{
     ListNode *spotListHead;        //挂载：该分类下所有地点
 }ClassTreeNode,*ClassTree;
 
+//邻接矩阵图
+typedef struct Graph{
+    int spotCount;                 //当前有效地点顶点数量
+    int edge[MAX_SPOT_NUM][MAX_SPOT_NUM];  //邻接矩阵，存道路距离权重
+    CampusSpot spotList[MAX_SPOT_NUM];    //下标对应地点信息，映射顶点
+}Graph;
+
+//Dijkstra最短路径结果存储
+typedef struct PathRes{
+    int dist[MAX_SPOT_NUM];  //起点到各点最短距离
+    int pre[MAX_SPOT_NUM];    //前驱节点，用于回溯完整路径
+}PathRes;
+
 // 全局定义两个栈
 OpStack g_opStack;
 ViewStack g_viewStack;
 SpotLinkList g_SpotList;//全局地点主链表
 ClassTree g_ClassRoot; //V4新增：全局分类树根节点
+Graph g_CampusGraph; //校园导航全局图
 
 // 初始化链表
 void InitList(SpotLinkList *L) {
@@ -268,6 +284,38 @@ void QueryByClass(ClassTree root, char className[])
 void PrefixSearchTree(ClassTree root, char key[])
 {
     DfsSearch(root, key); //调用外部DFS
+}
+
+//1.初始化空图
+void InitGraph(Graph *g){
+    g->spotCount = 0;
+    for(int i=0;i<MAX_SPOT_NUM;i++){
+        for(int j=0;j<MAX_SPOT_NUM;j++){
+            g->edge[i][j] = INF;
+        }
+        g->edge[i][i] = 0; //自己到自己距离为0
+    }
+}
+
+//2.向图中添加地点顶点（新增地点时自动调用）
+int AddSpotToGraph(Graph *g,CampusSpot spot){
+    if(g->spotCount >= MAX_SPOT_NUM){
+        printf("地点数量已达上限，无法新增导航节点！\n");
+        return 0;
+    }
+    g->spotList[g->spotCount] = spot;
+    g->spotCount++;
+    return g->spotCount - 1; //返回当前顶点下标
+}
+
+//3.添加双向道路（无向图，A到B、B到A距离相同）
+void AddRoad(Graph *g,int idx1,int idx2,int distance){
+    if(idx1<0||idx2<0||idx1>=g->spotCount||idx2>=g->spotCount){
+        printf("地点编号不存在，添加道路失败！\n");
+        return;
+    }
+    g->edge[idx1][idx2] = distance;
+    g->edge[idx2][idx1] = distance;
 }
 
 // 新增地点
