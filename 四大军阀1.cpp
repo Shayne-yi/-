@@ -317,6 +317,61 @@ void AddRoad(Graph *g,int idx1,int idx2,int distance){
     g->edge[idx1][idx2] = distance;
     g->edge[idx2][idx1] = distance;
 }
+//4.Dijkstra最短路径核心算法
+void Dijkstra(Graph *g,int start,PathRes *res){
+    int vis[MAX_SPOT_NUM] = {0};
+    int n = g->spotCount;
+    //初始化距离、前驱
+    for(int i=0;i<n;i++){
+        res->dist[i] = g->edge[start][i];
+        res->pre[i] = start;
+    }
+    vis[start] = 1;
+
+    for(int i=1;i<n;i++){
+        //找未访问的距离最小点
+        int minDis = INF;
+        int u = -1;
+        for(int j=0;j<n;j++){
+            if(!vis[j] && res->dist[j]<minDis){
+                minDis = res->dist[j];
+                u = j;
+            }
+        }
+        if(u == -1) break;
+        vis[u] = 1;
+        //松弛更新
+        for(int v=0;v<n;v++){
+            if(!vis[v] && g->edge[u][v]!=INF && res->dist[v] > res->dist[u]+g->edge[u][v]){
+                res->dist[v] = res->dist[u]+g->edge[u][v];
+                res->pre[v] = u;
+            }
+        }
+    }
+}
+
+//5.打印完整导航路径
+void PrintPath(Graph *g,PathRes *res,int start,int end){
+    if(res->dist[end] == INF){
+        printf("两点之间无连通道路，无法规划路线！\n");
+        return;
+    }
+    //回溯路径存入数组
+    int path[MAX_SPOT_NUM],len=0;
+    int cur = end;
+    while(cur != start){
+        path[len++] = cur;
+        cur = res->pre[cur];
+    }
+    path[len++] = start;
+    //逆序输出
+    printf("【最短步行路线】总距离：%d米\n路线：",res->dist[end]);
+    for(int i=len-1;i>=0;i--){
+        printf("%s",g->spotList[path[i]].name);
+        if(i>0) printf(" → ");
+    }
+    printf("\n");
+}
 
 // 新增地点
 int AddSpot(SpotLinkList *L, CampusSpot spot) {
