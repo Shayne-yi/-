@@ -711,7 +711,7 @@ int main() {
 	BindSpotToClass(g_ClassRoot,"教学楼区",test10);
 
     while (true) {
-        printf("\n===== 校园导航系统 V5.0=====\n");
+        printf("\n===== 校园导航系统 V6.0=====\n");
         printf("1. 新增地点\n");
         printf("2. 删除地点\n");
         printf("3. 修改地点\n");
@@ -845,7 +845,7 @@ int main() {
                 break;
             case 0:
                 DestroyList(&spotList);  // 退出前释放内存
-                printf("感谢使用校园导航系统V5.0，再见！\n");
+                printf("感谢使用校园导航系统V6.0，再见！\n");
                 return 0;
             default:
                 printf("输入错误，请重新选择！\n");
