@@ -665,8 +665,10 @@ int main() {
 	AddNode(g_ClassRoot,"其他区域",OTHER_AREA);
 	//二级子分类示例（教学楼下加弘毅楼、实验楼）
 	AddNode(g_ClassRoot->child[0],"弘毅楼",TEACH_BUILD);
-	AddNode(g_ClassRoot->child[0],"理工实验楼",TEACH_BUILD);
-	AddNode(g_ClassRoot->child[1],"一号宿舍楼",LIVE_AREA);
+	AddNode(g_ClassRoot->child[0],"实验楼",TEACH_BUILD);
+	AddNode(g_ClassRoot->child[1],"宿舍楼",LIVE_AREA);
+	AddNode(g_ClassRoot->child[2],"运动场",SPORT_AREA);
+	AddNode(g_ClassRoot->child[3],"食堂",OTHER_AREA);
 
 	//V5 初始化导航图
 	InitGraph(&g_CampusGraph);
@@ -746,7 +748,7 @@ int main() {
                 AddSpot(&spotList, newSpot);
 
 				char clsName[MAX_CLASS_NAME];
-				printf("\n请输入该地点所属分类名称(如:弘毅楼/教学楼):");
+				printf("\n请输入该地点所属分类名称(如:弘毅楼/教学楼区/食堂/宿舍楼/运动场):");
 				scanf("%s",clsName);
 				// 清理本次输入的换行，只在case内部消耗
 				while(getchar() != '\n');
@@ -822,7 +824,7 @@ int main() {
 			}	
 			case 10:{
 			    char cls[MAX_CLASS_NAME];
-			    printf("输入要查询的分类名(教学楼区/弘毅楼/一号宿舍楼):");
+			    printf("输入要查询的分类名(弘毅楼/教学楼区/食堂/宿舍楼/运动场):");
 			    scanf("%s",cls);
 			    QueryByClass(g_ClassRoot,cls);
 			    break;
